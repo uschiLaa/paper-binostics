@@ -1,0 +1,160 @@
+---
+title: "binostics: computing scagnostics measures in R and C++"
+author:
+  - name: Ursula Laa
+    affiliation: Affiliation
+    address:
+    - line 1
+    - line 2
+    email:  author1@work
+  - name: Dianne Cook
+    affiliation: Affiliation
+    address:
+    - line 1
+    - line 2
+    email:  author2@work
+  - name: Hadley Wickham
+    affiliation: Affiliation
+    address:
+    - line 1
+    - line 2
+    email:  author3@work
+  - name: Heike Hofmann
+    affiliation: Affiliation
+    address:
+    - line 1
+    - line 2
+    email:  author4@work
+abstract: >
+  An abstract of less than 150 words.
+preamble: |
+  % Any extra LaTeX you need in the preamble
+output: rticles::rjournal_article
+---
+
+## Introduction
+
+- scatter plot matrix, need for variable selection with big data
+- scagnostics [@scag,@WW08]: characterise scatterplots with 8 summaries (scatterplot diagnostics), select interesting plots from a SPLOM of the scagnostics measures and interactively look at those
+- similar methods (e.g. MIC[@Reshef1518], available via minerva package [@minerva])
+- alternative methods to see combinations of variables: tours [@As85,@tourr], PCA, LDA, PP [@f87]
+
+things to mention: scagnostics package (CRAN) [@LWscagR], mbgraphic [@mbgraphic] (archived!) and Katrins thesis work [@Grimm2016]
+
+## Scagnostics measures
+
+Following @scag the scagnostics measures are evaluated on the data after hexagon binning, and based on the Delaunay triangulation for comutational efficiency. In addition, outlying points are removed before computing the measures (with exception of the Outlying measure), to make the measures more robust.
+
+### Underlying definitions
+All measures are based on graphs, i.e. a set of vertices and edges, that can all be extracted from the Delaunay triangulation, namely:
+
+- the convex hull, i.e. the outer edges of the Delaunay triangulation
+- the alpha hull [@1056714]
+- the minimum spanning tree (MST) [@kruskal1956] 
+
+In the following, the length of the MST is defined as the sum of lengths of all edges, and $q_x$ is defined as the $x$th percentile of the MST edge lengths.
+
+
+When computing the alpha hull, $\alpha$ is set to $q_{90}$ [@scag]. The definition of outlying points is also based on edge length, with points being tagged as outlying if all adjacent edges in the MST have a lenght larger than
+\begin{equation}
+w = q_{75} + 1.5 ( q_{75} - q_{25}).
+\end{equation}
+Several of the measures are corrected for dependence on sample size using the weight
+\begin{equation}
+\omega = 0.7 + \frac{0.3}{1+t^2},
+\end{equation}
+where $t = n / 500$ and $n$ the sample size. This correction weight was determined by comparing the scagnostics measures over a large number of datasets [@scag].
+
+### Measure definitions
+
+- **Outlying**: compares the edge lengths of the MST of outlying points with the length of the original MST T 
+\begin{equation}
+c_{\mathrm{outlying}} = \frac{length(T_{\mathrm{outliers}})}{length(T)}
+\end{equation}
+- **Skewed**: is measuring skewness in the distribution of MST edge lengths (and thus large values might not correspond to skewed distributions of points) as
+\begin{equation}
+c'_{\mathrm{skewed}} = \frac{q_{90}-q_{50}}{q_{90}-q_{10}},
+\end{equation}
+and is corrected to adjust for dependence on the sample size as
+\begin{equation}
+c_{\mathrm{skewed}} = 1 - \omega (1 - c'_{\mathrm{skewed}}).
+\end{equation}
+- **Sparse**: detects if points are only found in small number of locations in the plane, as is the case for categorical variables,
+\begin{equation}
+c_{\mathrm{sparse}} = \omega q_{90}.
+\end{equation}
+- **Clumpy**: to detect clustering we split the MST in two parts by removing a single edge $j$, and compare the largest edge lenght within the smaller of the two subsets to the length of the removed edge $j$. The clumpy measure is defined by maximising over all edges in the MST as
+\begin{equation}
+c_{\mathrm{clumpy}} = \max_j [1 - \max_k[\mathrm{length}(e_k)] / \mathrm{length}(e_j) ],
+\end{equation}
+with $k$ running over all edges in the smaller subgraph found after removing edge $j$ from the MST.
+- **Striated**: aims to detect patterns like smooth algebraic functions or parallel lines, by evaluating the angles between adjacent edges,
+\begin{equation}
+c_{\mathrm{striated}} = \frac{1}{|V|} \sum_{v\in V^{(2)}} I(\cos\theta_{e(v,a)e(v,b)} < -0.75),
+\end{equation}
+where $V$ is the set of vertices, $|V|$ the total number of vertices in the triangulation, $V^{(2)}$ the subset of vertices with two edges (i.e. vertices of degree two), and $I$ the indicator function.
+- **Convex**: convexity is computed as the ratio of the area of the alpha hull $A$ and the convex hull $H$, adjusting for sample size dependence,
+\begin{equation}
+c_{\mathrm{convex}} = \omega \frac{area(A)}{area(H)}.
+\end{equation}
+- **Skinny**: The ratio of the perimeter to the area of the alpha hull $A$, with normalization such that zero corresponds to a full circle and values close to 1 indicate a skinny polygon,
+\begin{equation}
+c_{\mathrm{skinny}} = 1 -  \frac{\sqrt{4\pi area(A)}}{perimeter(A)}.
+\end{equation}
+- **Stringy**: a stringy distribution should have no branches in the MST. This is evaluated by counting the number of vertices of degree two and comparing them to the total number of vertices (dropping those of degree one),
+\begin{equation}
+c_{\mathrm{stringy}} = \frac{|V^{(2)}|}{|V| - |V^{(1)}|}.
+\end{equation}
+- **Monotonic**: monotonicity is evaluated via the squared Spearman correlation coefficient, i.e. the Pearson correlation between the ranks of $x$ and $y$,
+\begin{equation}
+c_{\mathrm{monotonic}} = r_{\mathrm{Spearman}}^2.
+\end{equation}
+
+XXX maybe there is a problem with the implementation of outlying, because this sometimes gives values larger than one? (e.g. vs vs am on mtcars, also gives NaN for several other measures: clumpy, striated, stringy, monotonic)
+
+
+## Implementation
+
+- input/output structure, how are we combining variables
+- c++ interface for efficient binning, triangulation
+- computation of measures
+- how to work with the resulting output
+
+Input is either: as raw function takes two vectors to calculate the scagnositcs for, or a 2D array (matrix or data frame) for which all combinations of variables will be considered
+
+Output: the raw function (called on two vecotrs) returns a list which contains the scagnostics measures (`s`) and the binning information (`bins`), when called on a 2D array the output is of the "scagdf" class. The main result is stored in matrix format, with each column corresponding to one of the scagnositcs measures, and each row a combination of input variables. The row names specify this combination, e.g. `scagdf["x vs y",]` returns all scagnostics measures computed on the scatterplot of variable `x` vs variable `y`. Additional attributes are "vars" (specifying the assignment of combinations of input variables to rows in the output) and "data" (a copy of the input data).
+
+The R interface handels the reading the input and output formatting, and for each combination of variables we call C++ functionalities to compute the measures. The steps are:
+
+- hexbinning of the data (here number of bins is free parameter, but if we find more than 250 non-empty bins in the result, redo binning with half the number of bins on each axis)
+- computing the Delaunay triangulation and the MST
+- use cutoff on edge length (based on MST) to identify outlying points, and recompute DT after removing outliers
+- compute scagnostics measures
+
+
+## Example
+
+A simple example showcasing how to use scagnostics measures
+
+```{r example, eval=F}
+
+# FIXME need better examples!
+
+library(tidyverse)
+s <- binostics::scagnostics(mtcars)
+s_tibble <- tibble::as_tibble(s[1:nrow(s),]) %>% #get tibble for plotting
+  dplyr::mutate(vars = rownames(s))
+GGally::ggpairs(select(s_tibble, -vars))
+filter(s_tibble, Skinny==1 & Convex==1)$vars # these are discrete values only on the "outside"
+filter(s_tibble, Skinny==1 & Convex==0)$vars # other discrete values give Convex=0
+filter(s_tibble, Outlying==2 & Skewed==0)$vars # also points to discrete values only on the "outside"
+```
+
+## Summary
+
+- scagnostics measures useful when exploring large datasets
+- the binostics implementaton is efficient thanks to c++ interface, and portable (no java dependence)
+- most useful for interactive exploration (maybe good to use in Shiny app?)
+- connection with PP (cite PPI paper)
+
+\bibliography{RJreferences}
