@@ -64,6 +64,7 @@ When computing the alpha hull, \(\alpha\) is set to \(q_{90}\)
 length, with points being tagged as outlying if all adjacent edges in
 the MST have a lenght larger than \begin{equation}
 w = q_{75} + 1.5 ( q_{75} - q_{25}).
+\label{eq:w}
 \end{equation} Several of the measures are corrected for dependence on
 sample size using the weight \begin{equation}
 \omega = 0.7 + \frac{0.3}{1+t^2},
@@ -147,54 +148,77 @@ because this sometimes gives values larger than one? (e.g.~vs vs am on
 mtcars, also gives NaN for several other measures: clumpy, striated,
 stringy, monotonic)
 
-\hypertarget{implementation}{%
-\subsection{Implementation}\label{implementation}}
+\hypertarget{interface}{%
+\subsection{Interface}\label{interface}}
+
+The elementary function in the binostics package \texttt{scagnostics}
+and can be called with a pair of vectors or a two-dimensional data
+structure (a matrix or data frame).
+
+The default S3 method is for a pair of vectors and will compute the
+scagnostics measures for a single scatter plot. In this case additional
+control and output. The additional arguments \texttt{bins} and
+\texttt{outlierRmv} can be used for detailed checkes, but should not be
+necessary for most applications. The output in this mode is a named list
+\texttt{out}, with \texttt{out\$s} reporting the scagnostics measures
+for the scatter plot, and \texttt{out\$bins} returns the binned data
+used to compute them. Note that only non-empty bins are kept, and the
+format is a \(3\times n\) matrix where the columns correspond to the bin
+position in \(x, y\) and the bin count, and each row is a non-empty bin.
+Internally the x and y axis is mapped to integer numbers, and the bin
+size is reset if there are more than 250 non-empty bins, and this is
+reflected in the matrix returned to the user.
+
+In most applications we are interested in the scagnostics measures for
+all combinations of variables in the input data. This is evaluated when
+passing a matrix or data frame to the \texttt{scagnostics} function. In
+this mode the function returns a data frame, where each row corresponds
+to one combination of variables, and we have one column for each
+scagnostics index. Two additional columns \texttt{var1} and
+\texttt{var2} report the corresponding variable names.
+
+Finally, we may only be interested in a single scagnostics index for a
+pair of vectors. Since the measures all rely on the underlying binning
+and triangulation we simply provide wrapper functions to access this
+information conveniently. These functions are named according after the
+corresponding scagnostics measure and report the index as an unnamed
+scalar. This mode would be preferred e.g.~when using the measure as a
+projection pursuit index.
+
+\hypertarget{implementation-connecting-r-and-c}{%
+\subsection{Implementation connecting R and
+C++}\label{implementation-connecting-r-and-c}}
+
+The interface is written in R and handels the reading the input, finds
+all combinations of variables in the case of matrix input. For each pair
+of variables it then pre-processes the data: entries with missing values
+in either of the two variables are dropped, and each variable is
+centered and scaled by its range. It is then using a direct call to C++
+for the computation of the measures, as described below, and finally
+collecting and formatting the output as described above.
+
+The underlying C++ implementation allows for a fast evaluation, in
+particular it handles the binning and triangulation. The triangulation
+is used to determine the MST, convex hull and alpha hull, which are then
+used to compute the measures. The calculation is done in the following
+steps:
 
 \begin{itemize}
 \tightlist
 \item
-  input/output structure, how are we combining variables
+  Binning of the data: we use hexagonal binning, where the number of
+  bins is a free parameter. Note that if this results in more than 250
+  non-empty bins in the result, half the number of bins will be used
+  instead.
 \item
-  c++ interface for efficient binning, triangulation
+  Computing the Delaunay triangulation and the MST
 \item
-  computation of measures
+  Outlier detection: we use a cutoff on the edge length (see Eq.
+  \ref{eq:w}), to identify outlying points. The triangulation and
+  computation of the MST are repeated after removing the tagged
+  outliers.
 \item
-  how to work with the resulting output
-\end{itemize}
-
-Input is either: as raw function takes two vectors to calculate the
-scagnositcs for, or a 2D array (matrix or data frame) for which all
-combinations of variables will be considered
-
-Output: the raw function (called on two vecotrs) returns a list which
-contains the scagnostics measures (\texttt{s}) and the binning
-information (\texttt{bins}), when called on a 2D array the output is of
-the ``scagdf'' class. The main result is stored in matrix format, with
-each column corresponding to one of the scagnositcs measures, and each
-row a combination of input variables. The row names specify this
-combination, e.g.~\texttt{scagdf{[}"x\ vs\ y",{]}} returns all
-scagnostics measures computed on the scatterplot of variable \texttt{x}
-vs variable \texttt{y}. Additional attributes are ``vars'' (specifying
-the assignment of combinations of input variables to rows in the output)
-and ``data'' (a copy of the input data).
-
-The R interface handels the reading the input and output formatting, and
-for each combination of variables we call C++ functionalities to compute
-the measures. The steps are:
-
-\begin{itemize}
-\tightlist
-\item
-  hexbinning of the data (here number of bins is free parameter, but if
-  we find more than 250 non-empty bins in the result, redo binning with
-  half the number of bins on each axis)
-\item
-  computing the Delaunay triangulation and the MST
-\item
-  use cutoff on edge length (based on MST) to identify outlying points,
-  and recompute DT after removing outliers
-\item
-  compute scagnostics measures
+  Compute scagnostics measures.
 \end{itemize}
 
 \hypertarget{example}{%
@@ -216,6 +240,12 @@ filter(s_tibble, Skinny==1 & Convex==0)$vars # other discrete values give Convex
 filter(s_tibble, Outlying==2 & Skewed==0)$vars # also points to discrete values only on the "outside"
 \end{Sinput}
 \end{Schunk}
+
+\hypertarget{interactive-graphics}{%
+\subsection{Interactive graphics}\label{interactive-graphics}}
+
+Show how to use plotly to identify which variables lead to outliers on a
+SPLOM of scagnostics measures?
 
 \hypertarget{summary}{%
 \subsection{Summary}\label{summary}}
