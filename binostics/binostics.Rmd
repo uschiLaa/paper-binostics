@@ -147,12 +147,16 @@ A simple example showcasing how to use scagnostics measures
 
 library(tidyverse)
 s <- binostics::scagnostics(mtcars)
-s_tibble <- tibble::as_tibble(s[1:nrow(s),]) %>% #get tibble for plotting
-  dplyr::mutate(vars = rownames(s))
-GGally::ggpairs(select(s_tibble, -vars))
-filter(s_tibble, Skinny==1 & Convex==1)$vars # these are discrete values only on the "outside"
-filter(s_tibble, Skinny==1 & Convex==0)$vars # other discrete values give Convex=0
-filter(s_tibble, Outlying==2 & Skewed==0)$vars # also points to discrete values only on the "outside"
+labs <-  paste0(s$var1,"-",s$var2)
+# kind of works but not really...
+GGally::ggpairs(s, aes(text = labs), columns=1:8) %>%
+  plotly::ggplotly()
+filter(s, Skinny==1 & Convex==1) # these are discrete values only on the "outside"
+filter(s, Skinny==1 & Convex==0) # other discrete values give Convex=0
+filter(s_tibble, Outlying==2 & Skewed==0) # also points to discrete values only on the "outside"
+ggplot(mtcars, aes(cyl, vs)) + geom_point()
+ggplot(mtcars, aes(cyl, carb)) + geom_point()
+
 ```
 
 ## Interactive graphics
