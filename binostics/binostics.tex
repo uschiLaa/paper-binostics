@@ -224,28 +224,129 @@ steps:
 \hypertarget{example}{%
 \subsection{Example}\label{example}}
 
-A simple example showcasing how to use scagnostics measures
+To illustrate the use of scagnostics via the binostics package, we
+evaluate them for the Parkinsons data \citep{parkinsons} available from
+\citet{uci_parkinsons}. The dataset is composed of 22 biomedical voice
+measurements from 31 people, 23 with Parkinson's disease (PD), each
+column is a particular voice measure, and each row corresponds one of
+195 voice recording from these individuals. The original aim of the data
+was to discriminate healthy people from those with PD, and the data also
+records to ``status'' (0 for healthy individuals and 1 for those with
+PD). Here we instead look for patterns in combinations of the 22
+variables, irrespective of the status.
+
+Given the 22 input variables, there are 231 bivariate plots to look at,
+and we can use scagnostics to select the most interesting ones. We start
+by reading in the data, dropping the identifier and status columns, and
+evaluating the scagnostics measures for all variable combinations. To
+show the data structure we use the \texttt{glimpse} function to show the
+first few entries. The data frame returned by the
+\texttt{binostics::scagnostics} call has one column for each scagnostics
+measure, and \texttt{var1} and \texttt{var2} reporting the corresponding
+variable combination for each entry.
 
 \begin{Schunk}
 \begin{Sinput}
-# FIXME need better examples!
+pk <- as.data.frame(read.csv("data/parkinsons.csv")[,-c(1,18)])
+s <- binostics::scagnostics(pk)
+tibble::glimpse(s)
+\end{Sinput}
+\begin{Soutput}
+#> Rows: 231
+#> Columns: 11
+#> $ Outlying  <dbl> 0.9257279, 0.3293567, 0.4035949, 0.4507585, 0.8905294, 0....
+#> $ Skewed    <dbl> 0.6277309, 0.6886678, 0.7286064, 0.6905160, 0.6125908, 0....
+#> $ Clumpy    <dbl> 0.0110226189, 0.0907209155, 0.0637457396, 0.0011010779, 0...
+#> $ Sparse    <dbl> 0.03128291, 0.04721585, 0.04550484, 0.04338813, 0.0301569...
+#> $ Striated  <dbl> 0.04716981, 0.09848485, 0.06896552, 0.07857143, 0.1071428...
+#> $ Convex    <dbl> 0.07225233, 0.20414030, 0.13634988, 0.31400790, 0.1443526...
+#> $ Skinny    <dbl> 0.7542742, 0.7168408, 0.6808071, 0.6612432, 0.6114717, 0....
+#> $ Stringy   <dbl> 0.4168126, 0.5049218, 0.3669219, 0.4064421, 0.3517199, 0....
+#> $ Monotonic <dbl> 0.25289570, 0.34529197, 0.02725372, 0.06387947, 0.0296434...
+#> $ var1      <chr> "MDVP.Fo.Hz.", "MDVP.Fo.Hz.", "MDVP.Fhi.Hz.", "MDVP.Fo.Hz...
+#> $ var2      <chr> "MDVP.Fhi.Hz.", "MDVP.Flo.Hz.", "MDVP.Flo.Hz.", "MDVP.Jit...
+\end{Soutput}
+\end{Schunk}
 
-library(tidyverse)
-s <- binostics::scagnostics(mtcars)
-s_tibble <- tibble::as_tibble(s[1:nrow(s),]) %>% #get tibble for plotting
-  dplyr::mutate(vars = rownames(s))
-GGally::ggpairs(select(s_tibble, -vars))
-filter(s_tibble, Skinny==1 & Convex==1)$vars # these are discrete values only on the "outside"
-filter(s_tibble, Skinny==1 & Convex==0)$vars # other discrete values give Convex=0
-filter(s_tibble, Outlying==2 & Skewed==0)$vars # also points to discrete values only on the "outside"
+To get an overview of the results we can make a scatterplot matrix
+showing pairs of scagnostics measures, where each point now corresponds
+to one combination of input variables (i.e.~one bivariate scatterplot of
+the original data). This is most useful in an interactive plot that
+allows us to identify the variables associated with each point, and we
+can combine the \texttt{GGally::ggpairs} with \texttt{plotly::ggplotly}
+to generate this interactive display, as shown in the commented section
+of the code.
+
+We can generate a scatterplot matrix directly using the data frame
+returned by \texttt{binostics}, where the first nine columns contain the
+scagnostics measures.
+
+\begin{Schunk}
+\begin{Sinput}
+# get SPLOM using GGally
+GGally::ggpairs(s, columns=1:9)
+\end{Sinput}
+
+
+\begin{center}\includegraphics{/Users/ulaa0001/paper-binostics/figs/pairs-1} \end{center}
+
+\end{Schunk}
+
+This shows a few outlying points, i.e.~parameter combinations that
+should correspond to interesting scatterplots of the data. To find the
+corresponding parameters we can use \texttt{plotly} in an interactive
+display. To display the labels when hovering over points we can set the
+text aestetics, note however that this will be interpreted as grouping
+and will result in warnings when generating the graph.
+
+XXX additionally would be useful to have linked highlighting when
+hovering so we can compare across scagnostics measures
+
+\begin{Schunk}
+\begin{Sinput}
+## read variable columns to generate point labels
+## these are only used in the interactive display
+s <-  dplyr::mutate(s, labs = paste0(var1,"-",var2))
+## to generate a useful interactive plotly version we can
+## pass in the labels as text text (note that this will cause warnings in ggpairs)
+GGally::ggpairs(s, aes(text = labs), columns=1:9) %>%
+  plotly::ggplotly()
 \end{Sinput}
 \end{Schunk}
 
-\hypertarget{interactive-graphics}{%
-\subsection{Interactive graphics}\label{interactive-graphics}}
+Some interesting combinations that we have identified are:
 
-Show how to use plotly to identify which variables lead to outliers on a
-SPLOM of scagnostics measures?
+\begin{itemize}
+\tightlist
+\item
+  ``MDVP.RAP'' vs ``Jitter.DDP'': this combination leads to values close
+  to or exactly one for multiple measures, Striated, Skinny, Stringy and
+  Monotonic, while Convex, Clumpy and Sparse are close to zero. However,
+  the scatterplot is not very interesting, the two variables are
+  perfectly correlated.
+\item
+  ``Shimmer.APQ5'' vs ``HNR'': this combination stand out because it has
+  large Skewed measure (0.84) but lower Monotonic measure (0.53). The
+  scatterplot display shows a branching of observations for larger
+  values of Shimmer.APQ5.
+\item
+  ``MDVP.Fo.Hz.'' vs ``MDVP.Fhi.Hz.'': this combination has both low
+  Convex (0.07) and Monotonic (0.25) measures, and the scatterplot shows
+  strong linear correlation with few outlying points.
+\item
+  ``MDVP.Jitter.Abs.'' vs ``Jitter.DDP'': this combination stands out as
+  having an unusual combination of measures, including values of Skewed
+  (0.86), Sparse (0.05), Striated (0.18), Skinny (0.41) and Monotonic
+  (0.76). The scatterplot display shows discreetness along
+  MDVP.Jitter.Abs. and an unusual shape of the distribution.
+\end{itemize}
+
+\begin{Schunk}
+
+
+\begin{center}\includegraphics{/Users/ulaa0001/paper-binostics/figs/examples-1} \end{center}
+
+\end{Schunk}
 
 \hypertarget{summary}{%
 \subsection{Summary}\label{summary}}
