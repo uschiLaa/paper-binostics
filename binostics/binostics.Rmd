@@ -6,25 +6,18 @@ author:
     address:
     - line 1
     - line 2
-    email:  author1@work
+    email:  ursula.laa@boku.ac.at
   - name: Dianne Cook
-    affiliation: Affiliation
-    address:
-    - line 1
-    - line 2
-    email:  author2@work
+    affiliation: Monash University
+    address: Department of Econometrics and Business Statistics
+    email:  dicook@monash.edu
   - name: Hadley Wickham
-    affiliation: Affiliation
-    address:
-    - line 1
-    - line 2
-    email:  author3@work
+    affiliation: RStudio, PBC
+    email:  hadley@rstudio.com
   - name: Heike Hofmann
-    affiliation: Affiliation
-    address:
-    - line 1
-    - line 2
-    email:  author4@work
+    affiliation: Iowa State University
+    address: Department of Statistics
+    email:  hofmann@iastate.edu
 abstract: >
   An abstract of less than 150 words.
 preamble: |
@@ -41,6 +34,10 @@ library(gridExtra)
 ```
 
 ## Introduction
+
+A scatterplot matrix (SPLOM) is a useful plot to make to examine the distribution of two variables, for linear or nonlinear association, clustering, outliers, discrete, or barriers. However, if there are many variables there will be too many to practically display. For many variables it can be useful to find the most interesting pairs of variables using scagnostics (scatterplot diagnostics) [@scag,@WW08]. A smaller subset of interesting pairs of variables can then be shown in a SPLOM. 
+
+There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These, themselves can be examined using a SPLOM. This is especially helpful if some interactivity, so that the scagnostic values can be explored using mouseover or tooltip, to reveal the pair of variables that generates any value. 
 
 - scatter plot matrix, need for variable selection with big data
 - scagnostics [@scag,@WW08]: characterise scatterplots with 8 summaries (scatterplot diagnostics), select interesting plots from a SPLOM of the scagnostics measures and interactively look at those

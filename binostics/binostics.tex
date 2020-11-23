@@ -1,6 +1,6 @@
 % !TeX root = RJwrapper.tex
 \title{binostics: computing scagnostics measures in R and C++}
-\author{by Ursula Laa, Dianne Cook, Hadley Wickham, Heike Hofmann}
+\author{by Ursula Laa, Dianne Cook, Hadley Wickham, and Heike Hofmann}
 
 \maketitle
 
@@ -10,6 +10,22 @@ An abstract of less than 150 words.
 
 \hypertarget{introduction}{%
 \subsection{Introduction}\label{introduction}}
+
+A scatterplot matrix (SPLOM) is a useful plot to make to examine the
+distribution of two variables, for linear or nonlinear association,
+clustering, outliers, discrete, or barriers. However, if there are many
+variables there will be too many to practically display. For many
+variables it can be useful to find the most interesting pairs of
+variables using scagnostics (scatterplot diagnostics)
+\citep[\citet{WW08}]{scag}. A smaller subset of interesting pairs of
+variables can then be shown in a SPLOM.
+
+There are eight measures calculated in scagnostics: outlying, skewed,
+sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These,
+themselves can be examined using a SPLOM. This is especially helpful if
+some interactivity, so that the scagnostic values can be explored using
+mouseover or tooltip, to reveal the pair of variables that generates any
+value.
 
 \begin{itemize}
 \tightlist
@@ -288,7 +304,7 @@ GGally::ggpairs(s, columns=1:9)
 \end{Sinput}
 
 
-\begin{center}\includegraphics{/Users/ulaa0001/paper-binostics/figs/pairs-1} \end{center}
+\begin{center}\includegraphics{/Users/dicook/supervisor_post_docs/Ursula/paper-binostics/figs/pairs-1} \end{center}
 
 \end{Schunk}
 
@@ -344,7 +360,7 @@ Some interesting combinations that we have identified are:
 \begin{Schunk}
 
 
-\begin{center}\includegraphics{/Users/ulaa0001/paper-binostics/figs/examples-1} \end{center}
+\begin{center}\includegraphics{/Users/dicook/supervisor_post_docs/Ursula/paper-binostics/figs/examples-1} \end{center}
 
 \end{Schunk}
 
@@ -370,29 +386,41 @@ Some interesting combinations that we have identified are:
 
 \address{%
 Ursula Laa\\
-Affiliation\\
+Affiliation\\%
 line 1\\ line 2\\
+%
+%
+%
+\\\href{mailto:ursula.laa@boku.ac.at}{\nolinkurl{ursula.laa@boku.ac.at}}
 }
-\href{mailto:author1@work}{\nolinkurl{author1@work}}
 
 \address{%
 Dianne Cook\\
-Affiliation\\
-line 1\\ line 2\\
+Monash University\\%
+Department of Econometrics and Business Statistics\\
+%
+%
+%
+\\\href{mailto:dicook@monash.edu}{\nolinkurl{dicook@monash.edu}}
 }
-\href{mailto:author2@work}{\nolinkurl{author2@work}}
 
 \address{%
 Hadley Wickham\\
-Affiliation\\
-line 1\\ line 2\\
+RStudio, PBC\\%
+\\
+%
+%
+%
+\\\href{mailto:hadley@rstudio.com}{\nolinkurl{hadley@rstudio.com}}
 }
-\href{mailto:author3@work}{\nolinkurl{author3@work}}
 
 \address{%
 Heike Hofmann\\
-Affiliation\\
-line 1\\ line 2\\
+Iowa State University\\%
+Department of Statistics\\
+%
+%
+%
+\\\href{mailto:hofmann@iastate.edu}{\nolinkurl{hofmann@iastate.edu}}
 }
-\href{mailto:author4@work}{\nolinkurl{author4@work}}
 
