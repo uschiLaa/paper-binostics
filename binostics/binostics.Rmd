@@ -37,14 +37,22 @@ library(gridExtra)
 
 A scatterplot matrix (SPLOM) is a useful plot to make to examine the distribution of two variables, for linear or nonlinear association, clustering, outliers, discrete, or barriers. However, if there are many variables there will be too many to practically display. For many variables it can be useful to find the most interesting pairs of variables using scagnostics (scatterplot diagnostics) [@scag,@WW08]. A smaller subset of interesting pairs of variables can then be shown in a SPLOM. 
 
-There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These, themselves can be examined using a SPLOM. This is especially helpful if some interactivity, so that the scagnostic values can be explored using mouseover or tooltip, to reveal the pair of variables that generates any value. 
+There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These, themselves can be examined using a SPLOM. This is especially helpful if some interactivity, so that the scagnostic values can be explored using mouse-over tooltip, to reveal the pair of variables that generates any value. 
 
-- scatter plot matrix, need for variable selection with big data
+The scagnostics are calculated as a group by the convex hull and computing a minimal spanning tree on the bivariate data. These are processed in different ways to obtain the different metrics. An alternative approach for computing metrics on bivariate data based on correlation are described in @Reshef1518 and available in the \CRANpkg{minerva} package [@minerva]. The archived \CRANpkg{mbgraphic} [@mbgraphic] provides both correlation based and spline-based metrics that are described in [@Grimm2016]. The \CRANpkg{scagnostics} [@LWscagR] provides another implementation that computes scagnostics but it is dependent on the \CRANpkg{rJava} which is not easy to install on all platforms. The \CRANpkg{binostics} package discussed in this paper, implements the calculations using C++. 
+
+There are several alternatives for viewing relationships between more than two variables, including tours [@As85] (available in the \CRANpkg{tourr} package [@tourr]), principal component analysis (several functions avaible in R), linear discriminant analysis (available in the \CRANpkg{MASS}package [@MASS]), and projection pursuit [@f87]. 
+
+<!-- - scatter plot matrix, need for variable selection with big data
 - scagnostics [@scag,@WW08]: characterise scatterplots with 8 summaries (scatterplot diagnostics), select interesting plots from a SPLOM of the scagnostics measures and interactively look at those
 - similar methods (e.g. MIC[@Reshef1518], available via minerva package [@minerva])
 - alternative methods to see combinations of variables: tours [@As85,@tourr], PCA, LDA, PP [@f87]
 
 things to mention: scagnostics package (CRAN) [@LWscagR], mbgraphic [@mbgraphic] (archived!) and Katrins thesis work [@Grimm2016]
+-->
+
+This paper is organized as follows. The next section describes how to compute the scagnostics, and the section following illustrates how they can be used.
+
 
 ## Scagnostics measures
 

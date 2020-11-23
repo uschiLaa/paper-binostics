@@ -24,30 +24,30 @@ There are eight measures calculated in scagnostics: outlying, skewed,
 sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These,
 themselves can be examined using a SPLOM. This is especially helpful if
 some interactivity, so that the scagnostic values can be explored using
-mouseover or tooltip, to reveal the pair of variables that generates any
+mouse-over tooltip, to reveal the pair of variables that generates any
 value.
 
-\begin{itemize}
-\tightlist
-\item
-  scatter plot matrix, need for variable selection with big data
-\item
-  scagnostics \citep[\citet{WW08}]{scag}: characterise scatterplots with
-  8 summaries (scatterplot diagnostics), select interesting plots from a
-  SPLOM of the scagnostics measures and interactively look at those
-\item
-  similar methods (e.g.~MIC\citep{Reshef1518}, available via minerva
-  package \citep{minerva})
-\item
-  alternative methods to see combinations of variables: tours
-  \citep[\citet{tourr}]{As85}, PCA, LDA, PP \citep{f87}
-\end{itemize}
+The scagnostics are calculated as a group by the convex hull and
+computing a minimal spanning tree on the bivariate data. These are
+processed in different ways to obtain the different metrics. An
+alternative approach for computing metrics on bivariate data based on
+correlation are described in \citet{Reshef1518} and available in the
+\CRANpkg{minerva} package \citep{minerva}. The archived
+\CRANpkg{mbgraphic} \citep{mbgraphic} provides both correlation based
+and spline-based metrics that are described in \citep{Grimm2016}. The
+\CRANpkg{scagnostics} \citep{LWscagR} provides another implementation
+that computes scagnostics but it is dependent on the \CRANpkg{rJava}
+which is not easy to install on all platforms. The \CRANpkg{binostics}
+package discussed in this paper, implements the calculations using C++.
 
-things to mention: scagnostics package (CRAN) \citep{LWscagR}, mbgraphic
-\citep{mbgraphic} (archived!) and Katrins thesis work \citep{Grimm2016}
+There are several alternatives for viewing relationships between more
+than two variables, including tours \citep{As85} (available in the
+\CRANpkg{tourr} package \citep{tourr}), principal component analysis
+(several functions avaible in R), linear discriminant analysis
+(available in the \CRANpkg{MASS}package \citep{MASS}), and projection
+pursuit \citep{f87}.
 
-\hypertarget{scagnostics-measures}{%
-\subsection{Scagnostics measures}\label{scagnostics-measures}}
+This paper is organised as follows. \#\# Scagnostics measures
 
 Following \citet{scag} the scagnostics measures are evaluated on the
 data after hexagon binning, and based on the Delaunay triangulation for
