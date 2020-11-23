@@ -5,7 +5,14 @@
 \maketitle
 
 \abstract{%
-An abstract of less than 150 words.
+Scagnostics are useful for exploring large data by helping to find pairs
+of interesting variables. This paper describes a new implementation
+available in the binostics package. There are eight scagnostics,
+outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and
+monotonic. These are computed by processing the results of a convex hull
+and a minimal spanning tree, in different ways, and the calculations are
+made efficiently using C++. A data set on Parkinsons disease is used to
+illustrate the use of the package.
 }
 
 \hypertarget{introduction}{%
@@ -38,7 +45,8 @@ and spline-based metrics that are described in \citep{Grimm2016}. The
 \CRANpkg{scagnostics} \citep{LWscagR} provides another implementation
 that computes scagnostics but it is dependent on the \CRANpkg{rJava}
 which is not easy to install on all platforms. The \CRANpkg{binostics}
-package discussed in this paper, implements the calculations using C++.
+package discussed in this paper, implements the calculations using C++
+using the \CRANpkg{Rcpp} package \citep{Rcpp}.
 
 There are several alternatives for viewing relationships between more
 than two variables, including tours \citep{As85} (available in the
@@ -47,7 +55,12 @@ than two variables, including tours \citep{As85} (available in the
 (available in the \CRANpkg{MASS}package \citep{MASS}), and projection
 pursuit \citep{f87}.
 
-This paper is organised as follows. \#\# Scagnostics measures
+This paper is organized as follows. The next section describes how to
+compute the scagnostics, and the section following illustrates how they
+can be used.
+
+\hypertarget{scagnostics-measures}{%
+\subsection{Scagnostics measures}\label{scagnostics-measures}}
 
 Following \citet{scag} the scagnostics measures are evaluated on the
 data after hexagon binning, and based on the Delaunay triangulation for
@@ -263,7 +276,7 @@ variable combination for each entry.
 
 \begin{Schunk}
 \begin{Sinput}
-pk <- as.data.frame(read.csv("data/parkinsons.csv")[,-c(1,18)])
+pk <- as.data.frame(read.csv("data/parkinsons.csv")[, -c(1, 18)])
 s <- binostics::scagnostics(pk)
 tibble::glimpse(s)
 \end{Sinput}
@@ -300,19 +313,23 @@ scagnostics measures.
 \begin{Schunk}
 \begin{Sinput}
 # get SPLOM using GGally
-GGally::ggpairs(s, columns=1:9)
+GGally::ggpairs(s, columns = 1:9)
 \end{Sinput}
+\begin{figure}
 
+{\centering \includegraphics[width=1\linewidth]{/Users/dicook/supervisor_post_docs/Ursula/paper-binostics/figs/pairs-1} 
 
-\begin{center}\includegraphics{/Users/dicook/supervisor_post_docs/Ursula/paper-binostics/figs/pairs-1} \end{center}
+}
 
+\caption[Scatterplot matrix of scagnostics computed on the parkinsons data]{Scatterplot matrix of scagnostics computed on the parkinsons data.}\label{fig:pairs}
+\end{figure}
 \end{Schunk}
 
 This shows a few outlying points, i.e.~parameter combinations that
 should correspond to interesting scatterplots of the data. To find the
 corresponding parameters we can use \texttt{plotly} in an interactive
 display. To display the labels when hovering over points we can set the
-text aestetics, note however that this will be interpreted as grouping
+text aesthetics, note however that this will be interpreted as grouping
 and will result in warnings when generating the graph.
 
 XXX additionally would be useful to have linked highlighting when
@@ -320,13 +337,12 @@ hovering so we can compare across scagnostics measures
 
 \begin{Schunk}
 \begin{Sinput}
-## read variable columns to generate point labels
-## these are only used in the interactive display
-s <-  dplyr::mutate(s, labs = paste0(var1,"-",var2))
-## to generate a useful interactive plotly version we can
-## pass in the labels as text text (note that this will cause warnings in ggpairs)
-GGally::ggpairs(s, aes(text = labs), columns=1:9) %>%
-  plotly::ggplotly()
+## read variable columns to generate point labels these are only used in the
+## interactive display
+s <- dplyr::mutate(s, labs = paste0(var1, "-", var2))
+## to generate a useful interactive plotly version we can pass in the labels as
+## text text (note that this will cause warnings in ggpairs)
+GGally::ggpairs(s, aes(text = labs), columns = 1:9) %>% plotly::ggplotly()
 \end{Sinput}
 \end{Schunk}
 
@@ -358,28 +374,44 @@ Some interesting combinations that we have identified are:
 \end{itemize}
 
 \begin{Schunk}
+\begin{figure}
 
+{\centering \includegraphics[width=0.8\linewidth]{/Users/dicook/supervisor_post_docs/Ursula/paper-binostics/figs/examples-1} 
 
-\begin{center}\includegraphics{/Users/dicook/supervisor_post_docs/Ursula/paper-binostics/figs/examples-1} \end{center}
+}
 
+\caption[Pairs of parkinsons data variables with high or unusual combinations of scagnostic values are shown]{Pairs of parkinsons data variables with high or unusual combinations of scagnostic values are shown. }\label{fig:examples}
+\end{figure}
 \end{Schunk}
 
 \hypertarget{summary}{%
 \subsection{Summary}\label{summary}}
 
-\begin{itemize}
-\tightlist
-\item
-  scagnostics measures useful when exploring large datasets
-\item
-  the binostics implementaton is efficient thanks to c++ interface, and
-  portable (no java dependence)
-\item
-  most useful for interactive exploration (maybe good to use in Shiny
-  app?)
-\item
-  connection with PP (cite PPI paper)
-\end{itemize}
+This paper has described the package \pkg{binostics} which computes
+scagnostics. Scagnostics are useful when exploring large datasets, in
+particular for choosing a subset of variables to focus on. The
+implementation is efficient thanks to the C++ interface, and it is more
+portable across platforms, unlike the \pkg{scagnostics} package which
+depends on \pkg{RJava}.
+
+It would be useful in future work to provide these metrics and the
+choice of scatterplots to show in an interactive system like a Shiny app
+\citep{shiny}. These scagnostics could be usefully combined with
+projection pursuit to find interesting low-dimensional projections of
+high-dimensional data, as described in \citet{spinebil}.
+
+\hypertarget{acknowledgements}{%
+\subsection{Acknowledgements}\label{acknowledgements}}
+
+The authors gratefully acknowledge the support of the Australian
+Research Council. The paper was written in CRANpkg\{rmarkdown\}
+\citep{rmarkdown} using CRANpkg\{knitr\} \citep{knitr}.
+
+\hypertarget{supplementary-material}{%
+\subsection{Supplementary material}\label{supplementary-material}}
+
+The source material for this paper is available at
+\url{https://github.com/uschiLaa/paper-binostics}.
 
 \bibliography{RJreferences}
 

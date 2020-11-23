@@ -19,16 +19,19 @@ author:
     address: Department of Statistics
     email:  hofmann@iastate.edu
 abstract: >
-  An abstract of less than 150 words.
+  Scagnostics are useful for exploring large data by helping to find pairs of interesting variables. This paper describes a new implementation available in the binostics package. There are eight scagnostics, outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These are computed by processing the results of a convex hull and a minimal spanning tree, in different ways, and the calculations are made efficiently using C++. A data set on Parkinsons disease is used to illustrate the use of the package.
 preamble: |
   % Any extra LaTeX you need in the preamble
 output: rticles::rjournal_article
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE,
                       root.dir = here::here(), fig.path = here::here("figs/"), 
-                      fig.align = 'center')
+                      fig.align = 'center', 
+                      tidy = TRUE)
 library(tidyverse)
 library(gridExtra)
 ```
@@ -39,7 +42,7 @@ A scatterplot matrix (SPLOM) is a useful plot to make to examine the distributio
 
 There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These, themselves can be examined using a SPLOM. This is especially helpful if some interactivity, so that the scagnostic values can be explored using mouse-over tooltip, to reveal the pair of variables that generates any value. 
 
-The scagnostics are calculated as a group by the convex hull and computing a minimal spanning tree on the bivariate data. These are processed in different ways to obtain the different metrics. An alternative approach for computing metrics on bivariate data based on correlation are described in @Reshef1518 and available in the \CRANpkg{minerva} package [@minerva]. The archived \CRANpkg{mbgraphic} [@mbgraphic] provides both correlation based and spline-based metrics that are described in [@Grimm2016]. The \CRANpkg{scagnostics} [@LWscagR] provides another implementation that computes scagnostics but it is dependent on the \CRANpkg{rJava} which is not easy to install on all platforms. The \CRANpkg{binostics} package discussed in this paper, implements the calculations using C++. 
+The scagnostics are calculated as a group by the convex hull and computing a minimal spanning tree on the bivariate data. These are processed in different ways to obtain the different metrics. An alternative approach for computing metrics on bivariate data based on correlation are described in @Reshef1518 and available in the \CRANpkg{minerva} package [@minerva]. The archived \CRANpkg{mbgraphic} [@mbgraphic] provides both correlation based and spline-based metrics that are described in [@Grimm2016]. The \CRANpkg{scagnostics} [@LWscagR] provides another implementation that computes scagnostics but it is dependent on the \CRANpkg{rJava} which is not easy to install on all platforms. The \CRANpkg{binostics} package discussed in this paper, implements the calculations using C++ using the \CRANpkg{Rcpp} package [@Rcpp]. 
 
 There are several alternatives for viewing relationships between more than two variables, including tours [@As85] (available in the \CRANpkg{tourr} package [@tourr]), principal component analysis (several functions avaible in R), linear discriminant analysis (available in the \CRANpkg{MASS}package [@MASS]), and projection pursuit [@f87]. 
 
@@ -166,12 +169,12 @@ To get an overview of the results we can make a scatterplot matrix showing pairs
 
 We can generate a scatterplot matrix directly using the data frame returned by `binostics`, where the first nine columns contain the scagnostics measures.
 
-```{r pairs}
+```{r pairs, out.width="100%", fig.width=10, fig.height=10, fig.cap="Scatterplot matrix of scagnostics computed on the parkinsons data."}
 # get SPLOM using GGally
 GGally::ggpairs(s, columns=1:9)
 ```
 
-This shows a few outlying points, i.e. parameter combinations that should correspond to interesting scatterplots of the data. To find the corresponding parameters we can use `plotly` in an interactive display. To display the labels when hovering over points we can set the text aestetics, note however that this will be interpreted as grouping and will result in warnings when generating the graph.
+This shows a few outlying points, i.e. parameter combinations that should correspond to interesting scatterplots of the data. To find the corresponding parameters we can use `plotly` in an interactive display. To display the labels when hovering over points we can set the text aesthetics, note however that this will be interpreted as grouping and will result in warnings when generating the graph.
 
 XXX additionally would be useful to have linked highlighting when hovering so we can compare across scagnostics measures
 
@@ -192,19 +195,26 @@ Some interesting combinations that we have identified are:
 - "MDVP.Fo.Hz." vs "MDVP.Fhi.Hz.": this combination has both low Convex (0.07) and Monotonic (0.25) measures, and the scatterplot shows strong linear correlation with few outlying points.
 - "MDVP.Jitter.Abs." vs "Jitter.DDP": this combination stands out as having an unusual combination of measures, including values of Skewed (0.86), Sparse (0.05), Striated (0.18), Skinny (0.41) and Monotonic (0.76). The scatterplot display shows discreetness along MDVP.Jitter.Abs. and an unusual shape of the distribution.
 
-```{r examples, echo=F, fig.height= 6}
-p1 <- ggplot(pk, aes(MDVP.RAP, Jitter.DDP)) + geom_point() + theme(aspect.ratio = 1)
-p2 <- ggplot(pk, aes(Shimmer.APQ5, HNR)) + geom_point() + theme(aspect.ratio = 1)
-p3 <- ggplot(pk, aes(MDVP.Fo.Hz., MDVP.Fhi.Hz.)) + geom_point() + theme(aspect.ratio = 1)
-p4 <- ggplot(pk, aes(MDVP.Jitter.Abs., Jitter.DDP)) + geom_point() + theme(aspect.ratio = 1)
+```{r examples, echo=F, out.width="80%", fig.width=8, fig.height=8, fig.cap="Pairs of parkinsons data variables with high or unusual combinations of scagnostic values are shown. "}
+p1 <- ggplot(pk, aes(MDVP.RAP, Jitter.DDP)) + geom_point() + theme(aspect.ratio = 1) + ggtitle("A High on Stringy, Monotonic ... ")
+p2 <- ggplot(pk, aes(Shimmer.APQ5, HNR)) + geom_point() + theme(aspect.ratio = 1) + ggtitle("B High on Skewed")
+p3 <- ggplot(pk, aes(MDVP.Fo.Hz., MDVP.Fhi.Hz.)) + geom_point() + theme(aspect.ratio = 1) + ggtitle("C Low on Convex and Monotonic")
+p4 <- ggplot(pk, aes(MDVP.Jitter.Abs., Jitter.DDP)) + geom_point() + theme(aspect.ratio = 1) + ggtitle("D Unusual combination of several")
 grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
 
 ## Summary
 
-- scagnostics measures useful when exploring large datasets
-- the binostics implementaton is efficient thanks to c++ interface, and portable (no java dependence)
-- most useful for interactive exploration (maybe good to use in Shiny app?)
-- connection with PP (cite PPI paper)
+This paper has described the package \pkg{binostics} which computes scagnostics. Scagnostics are useful when exploring large datasets, in particular for choosing a subset of variables to focus on. The implementation is efficient thanks to the C++ interface, and it is more portable across platforms, unlike the \pkg{scagnostics} package which depends on \pkg{RJava}. 
 
-\bibliography{RJreferences}
+It would be useful in future work to provide these metrics and the choice of scatterplots to show in an interactive system like a Shiny app [@shiny]. These scagnostics could be usefully combined with projection pursuit to find interesting low-dimensional projections of high-dimensional data, as described in @spinebil. 
+
+## Acknowledgements
+
+The authors gratefully acknowledge the support of the Australian Research Council. The paper was written in CRANpkg{rmarkdown} [@rmarkdown] using CRANpkg{knitr} [@knitr].
+
+## Supplementary material 
+
+The source material for this paper is available at \url{https://github.com/uschiLaa/paper-binostics}.
+
+\bibliography{laa-cook-wickham-hofmann}
