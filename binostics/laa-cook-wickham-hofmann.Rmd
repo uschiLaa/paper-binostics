@@ -34,24 +34,24 @@ library(tidyverse)
 library(gridExtra)
 ```
 
-## Introduction
+# Introduction
 
 A scatterplot matrix (SPLOM) is a useful plot to make to examine the distribution of two variables, for linear or nonlinear association, clustering, outliers, discreteness, or barriers. However, if there are many variables there will be too many to practically display. For many variables it can be useful to find the most interesting pairs of variables using scagnostics (scatterplot diagnostics) [@scag,@WW08]. A smaller subset of interesting pairs of variables can then be shown in a SPLOM. 
 
 There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These, themselves can be examined using a SPLOM. This is especially helpful in combination with interactivity, so that the scagnostic values can be explored using mouse-over tooltip, to reveal the pair of variables that generates any value. 
 
-The scagnostics are calculated as a group by the convex hull and computing a minimal spanning tree on the bivariate data. These are processed in different ways to obtain the different metrics. An alternative approach for computing metrics on bivariate data based on correlation are described in @Reshef1518 and available in the \CRANpkg{minerva} package [@minerva]. The archived \CRANpkg{mbgraphic} [@mbgraphic] provides both correlation based and spline-based metrics that are described in [@Grimm2016]. The \CRANpkg{scagnostics} [@LWscagR] provides another implementation that computes scagnostics but it is dependent on the \CRANpkg{rJava} which is not easy to install on all platforms. The \CRANpkg{binostics} package discussed in this paper, implements the calculations using C++ using the \CRANpkg{Rcpp} package [@Rcpp]. 
+The scagnostics are calculated as a group by the convex hull and computing a minimal spanning tree on the bivariate data. These are processed in different ways to obtain the different metrics. An alternative approach for computing metrics on bivariate data based on correlation are described in @Reshef1518 and available in the \CRANpkg{minerva} package [@minerva]. The archived \CRANpkg{mbgraphic} [@mbgraphic] provides both correlation based and spline-based metrics that are described in [@Grimm2016]. The \CRANpkg{scagnostics} [@LWscagR] provides another implementation that computes scagnostics but it is dependent on the \CRANpkg{rJava} which is not easy to install on all platforms. The \CRANpkg{binostics} package discussed in this paper, implements the calculations using C++. 
 
 There are several alternatives for viewing relationships between more than two variables, including tours [@As85] (available in the \CRANpkg{tourr} package [@tourr]), principal component analysis (several functions available in R), linear discriminant analysis (available in the \CRANpkg{MASS} package [@MASS]), and projection pursuit [@f87]. 
 
 This paper is organized as follows. The next section describes how to compute the scagnostics, and the section following illustrates how they can be used.
 
 
-## Scagnostics measures
+# Scagnostics measures
 
 Following @scag the scagnostics measures are evaluated on the data after hexagon binning, and based on the Delaunay triangulation for computational efficiency. In addition, outlying points are removed before computing the measures (with exception of the Outlying measure), to make the measures more robust.
 
-### Underlying definitions
+## Underlying definitions
 All measures are based on graphs, i.e. a set of vertices and edges, that can all be extracted from the Delaunay triangulation, namely:
 
 - the convex hull, i.e. the outer edges of the Delaunay triangulation
@@ -72,7 +72,7 @@ Several of the measures are corrected for dependence on sample size using the we
 \end{equation}
 where $t = n / 500$ and $n$ the sample size. This correction weight was determined by comparing the scagnostics measures over a large number of datasets [@scag].
 
-### Measure definitions
+## Measure definitions
 
 - **Outlying**: compares the edge lengths of the MST of outlying points with the length of the original MST T 
 \begin{equation}
@@ -119,7 +119,7 @@ c_{\mathrm{monotonic}} = r_{\mathrm{Spearman}}^2.
 
 
 
-## Interface
+# Interface
 
 The elementary function in the binostics package `scagnostics` and can be called with a pair of vectors or a two-dimensional data structure (a matrix or data frame).
 
@@ -130,7 +130,7 @@ In most applications we are interested in the scagnostics measures for all combi
 Finally, we may only be interested in a single scagnostics index for a pair of vectors. Since the measures all rely on the underlying binning and triangulation we simply provide wrapper functions to access this information conveniently. These functions are named after the corresponding scagnostics measure and report the index as an unnamed scalar. This mode would be preferred e.g. when using one of the measures as a projection pursuit index.
 
 
-## Implementation connecting R and C++
+# Implementation connecting R and C++
 
 The interface is written in R and handles the reading of the input and finds all combinations of variables in  the case of matrix input. For each pair of variables it then pre-processes the data: entries with missing values in either of the two variables are dropped, and each variable is centered and scaled by its range. It is then using a direct call to C++ for the computation of the measures, as described below, and finally collecting and formatting the output as described above.
 
@@ -142,7 +142,7 @@ The underlying C++ implementation allows for a fast evaluation, in particular it
 - Compute scagnostics measures.
 
 
-## Example
+# Example
 
 To illustrate the use of scagnostics via the binostics package, we evaluate them for the Parkinsons data [@parkinsons] available from @uci_parkinsons. The dataset is composed of 22 biomedical voice measurements from 31 people, 23 with Parkinson's disease (PD), each column is a particular voice measure, and each row corresponds one of 195 voice recording from these individuals. The original aim of the data was to discriminate healthy people from those with PD, and the data also records the "status" (0 for healthy individuals and 1 for those with PD). Here we instead look for patterns in combinations of the 22 variables, irrespective of the status.
 
@@ -191,17 +191,17 @@ p4 <- ggplot(pk, aes(MDVP.Jitter.Abs., Jitter.DDP)) + geom_point() + theme(aspec
 grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
 
-## Summary
+# Summary
 
 This paper has described the package \pkg{binostics} which computes scagnostics. Scagnostics are useful when exploring large datasets, in particular for choosing a subset of variables to focus on. The implementation is efficient thanks to the C++ interface, and it is more portable across platforms, unlike the \pkg{scagnostics} package which depends on \pkg{RJava}. 
 
 It would be useful in future work to provide these metrics and the choice of scatterplots to show in an interactive system like a Shiny app [@shiny]. These scagnostics could be usefully combined with projection pursuit to find interesting low-dimensional projections of high-dimensional data, as described in @spinebil. 
 
-## Acknowledgements
+# Acknowledgements
 
 The authors gratefully acknowledge the support of the Australian Research Council. The paper was written in \CRANpkg{rmarkdown} [@rmarkdown] using \CRANpkg{knitr} [@knitr].
 
-## Supplementary material 
+# Supplementary material 
 
 The source material for this paper is available at \url{https://github.com/uschiLaa/paper-binostics}.
 
