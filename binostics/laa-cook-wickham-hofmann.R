@@ -17,8 +17,7 @@ tibble::glimpse(s)
 
 ## ----pairs, out.width="100%", fig.width=10, fig.height=10, fig.cap="Scatterplot matrix of scagnostics computed on the parkinsons data."----
 # get SPLOM using GGally
-GGally::ggpairs(s, columns=1:9)
-
+GGally::ggpairs(s, columns=1:9,  upper = list(continuous = "blank"), switch = "both")
 
 ## ----plotly, eval=F-------------------------------------------------
 ## ## read variable columns to generate point labels
