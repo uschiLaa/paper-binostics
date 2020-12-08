@@ -36,9 +36,25 @@ library(gridExtra)
 
 # Introduction
 
-A scatterplot matrix (SPLOM) is a useful plot to make to examine the distribution of two variables, for linear or nonlinear association, clustering, outliers, discreteness, or barriers. However, if there are many variables there will be too many to practically display. For many variables it can be useful to find the most interesting pairs of variables using scagnostics (scatterplot diagnostics) [@scag,@WW08]. A smaller subset of interesting pairs of variables can then be shown in a SPLOM. 
+A scatterplot matrix (SPLOM) is a useful plot to make to examine the distribution of two variables, for linear or nonlinear association, clustering, outliers, discreteness, or barriers. However, if there are many variables there will be too many to practically display. For many variables it can be useful to find the most interesting pairs of variables using scagnostics (scatterplot diagnostics) [@scag,@WW08]. A smaller subset of interesting pairs of variables can then be shown in a SPLOM.
 
-There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. These, themselves can be examined using a SPLOM. This is especially helpful in combination with interactivity, so that the scagnostic values can be explored using mouse-over tooltip, to reveal the pair of variables that generates any value. 
+Characterizing what makes a scatterplot interesting is different from typically computed summary statistics. Consider as an example Anscombes's quartet [@anscombe], shown in Figure \ref{fig:anscombe}. While measures such as mean, variance and correlation are the same across these four datasets, the graph clearly reveals differences that we aim to capture when defining scagnostics.
+
+```{r anscombe, echo=FALSE, out.width="100%", fig.width=10, fig.height=3, fig.cap="Scatterplot display of Anscombe's quartet. The four datasets have matching values across typical summary statistics (mean, variance, correlation), but show clear differences when plotted."}
+datasets::anscombe %>%
+   pivot_longer(cols = everything(),
+              names_to = c(".value", "set"),
+              names_pattern = "(.)(.)") %>%
+  ggplot(aes(x = x,
+           y = y)) +
+  geom_point() + 
+  facet_wrap(~set, nrow = 1)
+
+```
+
+There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. In our example the plots differ clearly in values of outlying (large for 3, 4), monotonic (large for 3), clumpy (larger for 4) and measures sensitive to the level of noise (striated and stringy are large for all plots except 1).
+
+The scagnostics measures themselves can be examined using a SPLOM. This is especially helpful in combination with interactivity, so that the scagnostic values can be explored using mouse-over tooltip, to reveal the pair of variables that generates any value. 
 
 The scagnostics are calculated as a group by the convex hull and computing a minimal spanning tree on the bivariate data. These are processed in different ways to obtain the different metrics. An alternative approach for computing metrics on bivariate data based on correlation is described in @Reshef1518 and available in the \CRANpkg{minerva} package [@minerva]. The archived \CRANpkg{mbgraphic} [@mbgraphic] provides both correlation based and spline-based metrics that are described in [@Grimm2016]. The \CRANpkg{scagnostics} [@LWscagR] provides another implementation that computes scagnostics but it is dependent on the \CRANpkg{rJava} which is not easy to install on all platforms. The \CRANpkg{binostics} package discussed in this paper, implements the calculations using C++. 
 
