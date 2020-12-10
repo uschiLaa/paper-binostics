@@ -45,14 +45,29 @@ datasets::anscombe %>%
    pivot_longer(cols = everything(),
               names_to = c(".value", "set"),
               names_pattern = "(.)(.)") %>%
+  mutate(set = LETTERS[as.numeric(set)]) %>%
   ggplot(aes(x = x,
            y = y)) +
   geom_point() + 
   facet_wrap(~set, nrow = 1)
+```
+
+There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. For our example of Anscombe's quartet we show selected scagnostics index values in Table \ref{tab:anscombe-scag}. In particular we see that outlying takes large values for C and D, stringy takes a low value for the noisy data in A and monotonic is large for C and not defined for the data in D.
+
+
+```{r anscombe-scag, echo=FALSE}
+scag <- sapply(1:4,
+       function(x) binostics::scagnostics(anscombe[ , x], anscombe[ , x+4])$s)
+colnames(scag) <-  c("A", "B", "C", "D")
+as_tibble(scag, rownames = "Index") %>%
+  mutate_if(is.numeric, format, digits=2,nsmall = 0) %>%
+  filter(Index %in% c("Outlying", "Stringy", "Monotonic")) %>%
+  kableExtra::kbl(booktabs = TRUE,
+                  caption = "Selected scagnostics index values for the Anscombe's quartet datasets.") %>%
+  kableExtra::kable_styling(position = "center")
 
 ```
 
-There are eight measures calculated in scagnostics: outlying, skewed, sparse, clumpy, striated, convex, skinny, stringy, and monotonic. In our example the plots differ clearly in values of outlying (large for 3, 4), monotonic (large for 3), clumpy (larger for 4) and measures sensitive to the level of noise (striated and stringy are large for all plots except 1).
 
 The scagnostics measures themselves can be examined using a SPLOM. This is especially helpful in combination with interactivity, so that the scagnostic values can be explored using mouse-over tooltip, to reveal the pair of variables that generates any value. 
 
@@ -186,10 +201,9 @@ This shows a few outlying points, i.e. parameter combinations that should corres
 
 ```{r plotly, eval=F}
 ## read variable columns to generate point labels
-## these are only used in the interactive display
 s <-  dplyr::mutate(s, labs = paste0(var1,"-",var2))
 ## to generate a useful interactive plotly version we can
-## pass in the labels as text text (note that this will cause warnings in ggpairs)
+## pass in the labels as text (note that this will cause warnings in ggpairs)
 GGally::ggpairs(s, aes(text = labs), columns=1:9,
                 upper = list(continuous = "blank"), 
                 switch = "both") %>%
